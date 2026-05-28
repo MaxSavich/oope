@@ -98,9 +98,12 @@ export default async function decorate(block) {
   const productsContainer = block.querySelector('.promo-banner__products');
   if (!productsContainer) return;
 
-  const filter = categoryPath
-    ? [{ attribute: 'categoryPath', eq: categoryPath }]
-    : (categoryId ? [{ attribute: 'categoryIds', eq: String(categoryId) }] : null);
+  let filter = null;
+  if (categoryPath) {
+    filter = [{ attribute: 'categoryPath', eq: categoryPath }];
+  } else if (categoryId) {
+    filter = [{ attribute: 'categoryIds', eq: String(categoryId) }];
+  }
 
   if (!filter) {
     productsContainer.innerHTML = '<p class="promo-banner__status">Add a <strong>Category ID</strong> or <strong>URL Path</strong> in the block configuration.</p>';

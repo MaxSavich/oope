@@ -33,6 +33,9 @@ import {
   getProductLink,
 } from '../../scripts/commerce.js';
 
+// Product badges (Capstone) — shared badge logic
+import { computeBadges, renderBadges } from '../product-badges/product-badges.js';
+
 // Initializers
 import { IMAGES_SIZES } from '../../scripts/initializers/pdp.js';
 import '../../scripts/initializers/cart.js';
@@ -104,6 +107,7 @@ export default async function decorate(block) {
       </div>
       <div class="product-details__right-column">
         <div class="product-details__header"></div>
+        <div class="product-details__badges"></div>
         <div class="product-details__tagline pdp-tagline"  aria-label="Promotional offer"></div>
         <div class="product-details__stock" role="status" aria-live="polite"></div>
         <div class="product-details__price"></div>
@@ -128,6 +132,7 @@ export default async function decorate(block) {
   const $alert = fragment.querySelector('.product-details__alert');
   const $gallery = fragment.querySelector('.product-details__gallery');
   const $header = fragment.querySelector('.product-details__header');
+  const $badges = fragment.querySelector('.product-details__badges');
   const $price = fragment.querySelector('.product-details__price');
   const $galleryMobile = fragment.querySelector('.product-details__right-column .product-details__gallery');
   const $shortDescription = fragment.querySelector('.product-details__short-description');
@@ -146,6 +151,16 @@ export default async function decorate(block) {
 
   events.on('pdp/data', (updatedProduct) => {
     if (!updatedProduct) return;
+
+    // Product badges (Capstone) — render badge strip from product context
+    if ($badges) {
+      if (updatedProduct.sku) {
+        renderBadges($badges, computeBadges(updatedProduct));
+      } else {
+        $badges.replaceChildren();
+      }
+    }
+
     if (updatedProduct.inStock) {
       $stock.textContent = '● In Stock';
       $stock.className = 'product-details__stock stock-badge stock-badge--in-stock';

@@ -33,8 +33,8 @@ import {
   getProductLink,
 } from '../../scripts/commerce.js';
 
-// Product badges (Capstone) — shared badge logic
-import { computeBadges, renderBadges } from '../product-badges/product-badges.js';
+// Product badges (Capstone) — shared badge logic (backend via mesh, fallback derived)
+import { resolveBadges, renderBadges } from '../product-badges/product-badges.js';
 
 // Initializers
 import { IMAGES_SIZES } from '../../scripts/initializers/pdp.js';
@@ -152,10 +152,10 @@ export default async function decorate(block) {
   events.on('pdp/data', (updatedProduct) => {
     if (!updatedProduct) return;
 
-    // Product badges (Capstone) — render badge strip from product context
+    // Product badges (Capstone) — render badge strip from backend (mesh)
     if ($badges) {
       if (updatedProduct.sku) {
-        renderBadges($badges, computeBadges(updatedProduct));
+        resolveBadges(updatedProduct).then((keys) => renderBadges($badges, keys));
       } else {
         $badges.replaceChildren();
       }

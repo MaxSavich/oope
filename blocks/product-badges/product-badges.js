@@ -1,18 +1,21 @@
 import { events } from '@dropins/tools/event-bus.js';
 
 /**
- * Product Badges
+ * Product Badges (Capstone)
  *
- * Week 2 (Capstone): static / product-derived badge strip on the PDP.
- * Exposes reusable `computeBadges` / `renderBadges` helpers (imported by the
- * product-details block) AND works as a standalone block via the default export.
+ * Week 3: badges are sourced from the backend via API Mesh
+ * (`Badges_getProductBadges(sku)`), which reads badge state computed by the
+ * `compute-badges` App Builder action and stored in I/O State, keyed by SKU.
  *
- * Subscribes to the PDP drop-in `pdp/data` event to receive product context
- * (sku, price, etc.).
+ * `computeBadges()` (client-side derivation from PDP data) is retained as a
+ * graceful fallback when the mesh is unreachable, so the strip never breaks.
  *
- * Week 3+ will replace `computeBadges()` with a backend-driven source
- * (App Builder action via API Mesh, keyed by SKU).
+ * Exposes reusable helpers (`fetchBadges`, `resolveBadges`, `renderBadges`)
+ * imported by the product-details block, and works standalone via the default
+ * export.
  */
+
+const MESH_ENDPOINT = 'https://edge-sandbox-graph.adobe.io/api/6c63eb52-c5b0-4f42-8c98-16fba84a43de/graphql';
 
 // Badge definitions — label + modifier class for styling.
 export const BADGE_DEFS = {
@@ -22,8 +25,43 @@ export const BADGE_DEFS = {
 };
 
 /**
- * Week 2 placeholder badge logic — derived client-side from product data
- * already available on the PDP. This settles UI location + styling.
+ * Fetch backend-computed badge keys for a SKU via API Mesh.
+ * @param {string} sku
+ * @returns {Promise<string[]>} badge type keys (e.g. ['new','limited'])
+ */
+export async function fetchBadges(sku) {
+  const query = `
+    query GetProductBadges($sku: String!) {
+      Badges_getProductBadges(sku: $sku) {
+        sku
+        badges
+        updatedAt
+      }
+    }
+  `;
+
+  const response = await fetch(MESH_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables: { sku } }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Mesh request failed: ${response.status}`);
+  }
+
+  const payload = await response.json();
+  if (payload.errors?.length) {
+    throw new Error(payload.errors.map((e) => e.message).join('; '));
+  }
+
+  const badges = payload.data?.Badges_getProductBadges?.badges;
+  return Array.isArray(badges) ? badges : [];
+}
+
+/**
+ * Client-side fallback badge logic — derived from product data already on the
+ * PDP. Used only when the mesh call fails so the strip degrades gracefully.
  *
  * @param {object} product - product payload from `pdp/data`
  * @returns {string[]} badge type keys
@@ -31,7 +69,7 @@ export const BADGE_DEFS = {
 export function computeBadges(product) {
   const badges = [];
 
-  // NEW — static placeholder for now (future: created_at within N days).
+  // NEW — fallback assumes new when no backend data.
   badges.push('new');
 
   // LIMITED OFFER — derived from a real discount on the product.
@@ -43,10 +81,25 @@ export function computeBadges(product) {
     badges.push('limited');
   }
 
-  // BEST SELLER — static placeholder for now (future: ordered_qty threshold).
-  badges.push('bestseller');
-
   return badges;
+}
+
+/**
+ * Resolve badge keys for a product: backend (mesh) first, client-side fallback
+ * on any error. Always returns an array (possibly empty).
+ *
+ * @param {object} product - product payload from `pdp/data`
+ * @returns {Promise<string[]>}
+ */
+export async function resolveBadges(product) {
+  const sku = product?.sku;
+  if (!sku) return [];
+  try {
+    return await fetchBadges(sku);
+  } catch (error) {
+    console.warn('product-badges: mesh fetch failed, using fallback', error);
+    return computeBadges(product);
+  }
 }
 
 /**
@@ -81,7 +134,8 @@ export function renderBadges(container, badgeKeys) {
 
 /**
  * Standalone block usage: place a `product-badges` block in a document.
- * Reads product context from the event bus and renders the strip.
+ * Reads product context from the event bus and renders the strip from the
+ * backend badge source (mesh), falling back to client-side derivation.
  */
 export default function decorate(block) {
   block.innerHTML = '';
@@ -95,6 +149,6 @@ export default function decorate(block) {
       container.hidden = true;
       return;
     }
-    renderBadges(container, computeBadges(product));
+    resolveBadges(product).then((keys) => renderBadges(container, keys));
   }, { eager: true });
 }

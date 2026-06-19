@@ -34,3 +34,15 @@
 .product-badges__badge--limited {
   background-color: #d7373f;
 }
+
+.product-badges__badge--outofstock {
+  background-color: #6b7280;
+}
+
+.product-badges__badge--lastone {
+  background-color: #c2410c;
+}
+
+.product-badges__badge--lowstock {
+  background-color: #b7791f;
+}

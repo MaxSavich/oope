@@ -15,13 +15,19 @@ import { events } from '@dropins/tools/event-bus.js';
  * export.
  */
 
-const MESH_ENDPOINT = 'https://edge-sandbox-graph.adobe.io/api/6c63eb52-c5b0-4f42-8c98-16fba84a43de/graphql';
+const MESH_ENDPOINT = 'https://edge-sandbox-graph.adobe.io/api/25cf29b4-8257-448b-ae66-4103130c6df9/graphql';
 
-// Badge definitions — label + modifier class for styling.
+// Badge definitions — default label + modifier class for styling. Labels here
+// are fallbacks; the merchant-configured labels live in the badge rules and are
+// reflected in the computed badge keys. Keys must match compute-badges output:
+// new, bestseller, limited, outofstock, lastone, lowstock.
 export const BADGE_DEFS = {
   new: { label: 'New', modifier: 'product-badges__badge--new' },
   bestseller: { label: 'Best Seller', modifier: 'product-badges__badge--bestseller' },
   limited: { label: 'Limited Offer', modifier: 'product-badges__badge--limited' },
+  outofstock: { label: 'Out of Stock', modifier: 'product-badges__badge--outofstock' },
+  lastone: { label: 'Last One', modifier: 'product-badges__badge--lastone' },
+  lowstock: { label: 'Low Stock', modifier: 'product-badges__badge--lowstock' },
 };
 
 /**

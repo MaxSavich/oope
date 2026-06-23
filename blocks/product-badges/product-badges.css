@@ -9,6 +9,7 @@
   align-items: center;
 }
 
+/* Base badge styles — shared by all instances regardless of type */
 .product-badges__badge {
   display: inline-flex;
   align-items: center;
@@ -23,26 +24,45 @@
   white-space: nowrap;
 }
 
-.product-badges__badge--new {
+/* -------------------------------------------------------------------------
+   Merchant-configurable style classes.
+   The `style` field in Badge Rules Admin UI must match one of these class
+   names (or a custom one added below). The admin types the full class name,
+   e.g. `product_badge_sale`, and it is applied as:
+     <span class="product-badges__badge product_badge_sale">Limited Offer</span>
+
+   To add a new style: add a CSS rule here, push to main, then the admin
+   can use the class name in the Badge Rules page.
+   ---------------------------------------------------------------------- */
+
+/* Default — neutral grey, used when no specific style is set */
+.product_badge_default {
+  background-color: #4b5563;
+}
+
+/* New arrival — teal/green */
+.product_badge_new {
   background-color: #2d9d78;
 }
 
-.product-badges__badge--bestseller {
-  background-color: #b45309;
-}
-
-.product-badges__badge--limited {
+/* Sale / promotional — red */
+.product_badge_sale {
   background-color: #d7373f;
 }
 
-.product-badges__badge--outofstock {
-  background-color: #6b7280;
+/* Stock urgency (out-of-stock, last-one, low-stock) — amber/orange */
+.product_badge_stock {
+  background-color: #b45309;
 }
 
-.product-badges__badge--lastone {
-  background-color: #c2410c;
-}
-
-.product-badges__badge--lowstock {
-  background-color: #b7791f;
-}
+/* -------------------------------------------------------------------------
+   Legacy modifier classes — kept for backward compatibility with any
+   existing content that still references the old BEM class names.
+   These map to the same colours as the merchant styles above.
+   ---------------------------------------------------------------------- */
+.product-badges__badge--new       { background-color: #2d9d78; }
+.product-badges__badge--bestseller { background-color: #b45309; }
+.product-badges__badge--limited   { background-color: #d7373f; }
+.product-badges__badge--outofstock { background-color: #6b7280; }
+.product-badges__badge--lastone   { background-color: #c2410c; }
+.product-badges__badge--lowstock  { background-color: #b7791f; }

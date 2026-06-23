@@ -32,6 +32,7 @@ import {
   fetchPlaceholders,
   getProductLink,
 } from '../../scripts/commerce.js';
+import { loadCSS } from '../../scripts/aem.js';
 
 // Product badges (Capstone) — shared badge logic (backend via mesh, fallback derived)
 import { resolveBadges, renderBadges, fetchRulesMap } from '../product-badges/product-badges.js';
@@ -40,6 +41,11 @@ import { resolveBadges, renderBadges, fetchRulesMap } from '../product-badges/pr
 import { IMAGES_SIZES } from '../../scripts/initializers/pdp.js';
 import '../../scripts/initializers/cart.js';
 import '../../scripts/initializers/wishlist.js';
+
+// The product-badges block CSS is not auto-loaded here (badges are rendered
+// inside product-details, not via a standalone product-badges block), so the
+// badge style classes would have no styling. Load it explicitly, once.
+loadCSS(`${window.hlx.codeBasePath}/blocks/product-badges/product-badges.css`);
 
 /**
  * Checks if the page has prerendered product JSON-LD data

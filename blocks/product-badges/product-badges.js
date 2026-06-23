@@ -109,10 +109,16 @@ export async function resolveBadges(product) {
  * Render a badge strip into the given container.
  * @param {HTMLElement} container
  * @param {string[]} badgeIds   - IDs from get-badges (e.g. ['new_1', 'limited_1'])
- * @param {Map}      rulesMap   - id -> { label, style } from get-rules
+ * @param {Map}      [rulesMap] - id -> { label, style } from get-rules. Optional;
+ *                                if omitted, the raw ID is used as the label and
+ *                                the default style is applied (never throws).
  */
 export function renderBadges(container, badgeIds, rulesMap) {
   container.replaceChildren();
+
+  // Defensive: tolerate a missing/invalid rules map so a caller that forgets to
+  // pass it can never crash the PDP — badges still render with fallback labels.
+  const map = rulesMap instanceof Map ? rulesMap : new Map();
 
   const validIds = (badgeIds || []).filter((id) => id);
   if (!validIds.length) {
@@ -125,7 +131,7 @@ export function renderBadges(container, badgeIds, rulesMap) {
   strip.className = 'product-badges__strip';
 
   validIds.forEach((id) => {
-    const def = rulesMap.get(id);
+    const def = map.get(id);
     // Graceful fallback: if the rules map doesn't have this ID yet (e.g. rules
     // changed and the cache hasn't refreshed), render the raw ID as the label
     // with the default style.

@@ -34,7 +34,7 @@ import {
 } from '../../scripts/commerce.js';
 
 // Product badges (Capstone) — shared badge logic (backend via mesh, fallback derived)
-import { resolveBadges, renderBadges } from '../product-badges/product-badges.js';
+import { resolveBadges, renderBadges, fetchRulesMap } from '../product-badges/product-badges.js';
 
 // Initializers
 import { IMAGES_SIZES } from '../../scripts/initializers/pdp.js';
@@ -152,10 +152,13 @@ export default async function decorate(block) {
   events.on('pdp/data', (updatedProduct) => {
     if (!updatedProduct) return;
 
-    // Product badges (Capstone) — render badge strip from backend (mesh)
+    // Product badges (Capstone) — render badge strip from backend (mesh).
+    // renderBadges needs the rules map (id -> { label, style }) AND the badge
+    // IDs, so fetch both in parallel and pass all three args.
     if ($badges) {
       if (updatedProduct.sku) {
-        resolveBadges(updatedProduct).then((keys) => renderBadges($badges, keys));
+        Promise.all([fetchRulesMap(), resolveBadges(updatedProduct)])
+          .then(([rulesMap, keys]) => renderBadges($badges, keys, rulesMap));
       } else {
         $badges.replaceChildren();
       }

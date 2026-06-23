@@ -22,7 +22,7 @@ const GET_RULES_URL = 'https://3967933-471blackyak-stage.adobeioruntime.net/api/
 let rulesCache = null; // Map<id, { label, style }>
 let rulesFetchPromise = null;
 
-async function fetchRulesMap() {
+export async function fetchRulesMap() {
   if (rulesCache) return rulesCache;
   if (rulesFetchPromise) return rulesFetchPromise;
 
